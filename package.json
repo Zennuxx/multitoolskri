@@ -1,0 +1,12 @@
+{
+    "name": "tglog",
+    "version": "1.0.0",
+    "description": "young dumb broke high school kids",
+    "main": "index.html",
+    "scripts": {
+        "start": "vercel dev"
+    },
+    "keywords": ["telegram", "logger", "tracking"],
+    "author": "",
+    "license": "ISC"
+}
